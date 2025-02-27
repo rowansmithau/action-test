@@ -88,7 +88,6 @@ jobs:
 
       - name: Tag image for WIZ dependency graph
         run: |
-          set -x
           docker image inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
           docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
           sudo -E ./wizcli docker tag --log tag.log --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }} --digest $DIGEST
