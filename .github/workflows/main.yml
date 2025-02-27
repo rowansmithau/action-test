@@ -93,5 +93,5 @@ jobs:
           docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
           sudo -E ./wizcli docker tag --log tag.log --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }} --digest $DIGEST
           echo "---"
-          cat tag.log"
+          cat tag.log
           echo "---"
