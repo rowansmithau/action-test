@@ -1,0 +1,82 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag for the Docker image"
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: rowansmithau/action-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set default tag
+        if: env.app_tag == ''
+        run: echo "app_tag=latest" >> $GITHUB_ENV
+
+      - name: Get tag from release event
+        if: contains(github.ref, 'refs/tags')
+        run: |
+          echo "app_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Get tag from input event
+        if: ${{ github.event.inputs.tag != '' }}
+        run: |
+          echo "app_tag=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Download Wiz CLI
+        run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+  
+      - name: Authenticate to Wiz
+        run: ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+  
+      - name: Run wiz-cli docker image scan
+        run: ./wizcli docker scan --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+
+      - name: Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+
+      - name: Tag image for WIZ dependency graph
+        run: |
+          docker image inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+          sudo -E wizcli docker tag --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
