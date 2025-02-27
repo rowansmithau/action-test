@@ -90,6 +90,7 @@ jobs:
         run: |
           docker image inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
           docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+          echo "Digest to use is $DIGEST"
           sudo -E ./wizcli docker tag --log tag.log --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }} --digest $DIGEST
           echo "---"
           sudo cat tag.log
