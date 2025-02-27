@@ -67,7 +67,11 @@ jobs:
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
   
       - name: Run wiz-cli docker image scan
-        run: ./wizcli docker scan --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+        run: |
+          ./wizcli docker scan --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }} --log scan.log
+          echo "----"
+          cat scan.log
+          echo "---"
 
       - name: Push Docker image
         uses: docker/build-push-action@v6
@@ -79,4 +83,8 @@ jobs:
       - name: Tag image for WIZ dependency graph
         run: |
           docker image inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
-          sudo -E ./wizcli docker tag --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+          docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+          sudo -E ./wizcli docker tag --log tag.log --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+          echo "---"
+          cat tag.log"
+          echo "---"
