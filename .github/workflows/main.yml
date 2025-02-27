@@ -86,10 +86,17 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
 
+      - name: Inspect image details 1
+        run: docker image inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+        
+      - name: Inspect image details 2
+        run: docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+        
+      - name: Inspect image details 3
+        run: docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+                  
       - name: Tag image for WIZ dependency graph
         run: |
-          docker image inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
-          docker manifest inspect ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
           echo "Digest to use is $DIGEST"
           sudo -E ./wizcli docker tag --log tag.log --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }} --digest $DIGEST
           echo "---"
