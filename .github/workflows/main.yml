@@ -67,7 +67,7 @@ jobs:
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
   
       - name: Run wiz-cli docker image scan
-        run: ./wizcli docker scan --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }}
+        run: ./wizcli docker scan --image ${{ env.IMAGE_NAME }}:${{ env.app_tag }} --driver mountWithLayers
 
       - name: Push Docker image
         uses: docker/build-push-action@v6
