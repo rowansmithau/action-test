@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: No digest - Build and Push Docker Image
 
 on:
   push:
